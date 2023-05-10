@@ -1,0 +1,49 @@
+title: Rclone Execution
+id: 3f3a600b-53ad-41fb-86fb-f572db6e6f59
+status: production
+description: Ransomware actors have been observed using data sync tools such as Rclone to allow them to exfilrate large amounts of data before deploying Ransomware to a network. Any instances should be reviewed to ensure that its not a service doing backups.
+references:
+    - https://www.kroll.com/en/insights/publications/cyber/black-basta-technical-analysis
+    - https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_pua_rclone_execution.yml
+    - https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_rclone_exec_file.yml
+
+author: George Glass
+date: 2023/04/01
+tags:
+    - attack.exfiltration
+    - attack.t1567.002
+related:
+    - id: e37db05d-d1f9-49c8-b464-cee1a4b11638
+      type: obsoletes
+    - id: 34986307-b7f4-49be-92f3-e7a4d01ac5db
+      type: extends
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection_rclone_config_creation:
+        TargetFilename|contains:
+            - '\.config\rclone\'
+            - 'rclone'
+    selection_rclone_execution:
+        - Image|endswith: '\rclone.exe'
+    selection_rclone_cli:
+        CommandLine|contains:
+            - 'pass'
+            - 'create'
+            - 'copy'
+            - 'sync'
+            - 'config'
+            - 'remote:'
+            - 'mega'
+            - 'pcloud'
+            - 'ftp'
+            - 'ignore-existing'
+            - 'auto-confirm'
+            - 'transfers'
+            - 'multi-thread-streams'
+            - 'no-check-certificate '
+    condition: selection_rclone_config_creation or selection_rclone_execution and selection_rclone_cli
+falsepositives:
+    - Use of Rclone for backup creation
+level: high
